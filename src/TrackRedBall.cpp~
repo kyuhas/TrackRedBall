@@ -109,8 +109,7 @@ public:
         }
         //publish ball position
         std_msgs::String center_string;
-        std::stringstream data;
-        data << "x: "<< ball.x << " y: " << ball.y;
+        std::stringstream data << "x: "<< ball.x << " y: " << ball.y;
         center_string.data = data.str();
         ball_center_pub.publish(center_string);
         //ball_center_pub.publish(ball);
