@@ -22,7 +22,9 @@ public:
     : it_(nh_)
   {
     // Subscrive to input video feed and publish output video feed
-    image_sub_ = it_.subscribe("/usb_cam/image_raw", 10, 
+    //image_sub_ = it_.subscribe("/usb_cam/image_raw", 10, 
+      //&ImageConverter::imageCb, this);
+    image_sub_ = it_.subscribe("/camera/rgb/image_raw", 10, 
       &ImageConverter::imageCb, this);
     image_pub_ = it_.advertise("/image_converter/output_video", 10);
 
@@ -54,13 +56,13 @@ public:
     //publisher of ball centers
     ros::Publisher ball_center_pub = nh_.advertise<std_msgs::String>("BallCenter", 10);
 
-    //use thresholding to keep only red pixels
+    //use thresholding to keep only red pixels (and orange since the ball is orange)
     //to find thresholded color ranges, I used this website: http://www.tydac.ch/color/
     //red seems to be the only color that wraps around, so we need two Mats to represent it
     cv::Mat red_pixels_1;
     cv::Mat red_pixels_2;
-    cv::inRange(hsv_image, cv::Scalar(11, 200, 125), cv::Scalar(17, 255, 255), red_pixels_1);
-    cv::inRange(hsv_image, cv::Scalar(170, 200, 125), cv::Scalar(180, 255, 255), red_pixels_2);   
+    cv::inRange(hsv_image, cv::Scalar(0, 50, 50), cv::Scalar(30, 255, 255), red_pixels_1);
+    cv::inRange(hsv_image, cv::Scalar(150, 50, 50), cv::Scalar(180, 255, 255), red_pixels_2);   
     //get all of the red pixels in the image 
     cv::Mat all_reds;
     all_reds = red_pixels_1 | red_pixels_2;
@@ -68,15 +70,15 @@ public:
     //according to the tutorial from the link below, we need to blur the image to reduce the noise 
     //https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/hough_circle/hough_circle.html
     cv::GaussianBlur(all_reds, all_reds, cv::Size(9,9), 0, 0);
+    //cv::GaussianBlur(red_pixels_1, red_pixels_1, cv::Size(5,5), 0, 0);
 
     //now, let's use Hough Transforms to find any circles in the image
     cv::vector<cv::Vec3f> circles;
     //TODO: will likely need to tweak this value. 
     //TODO: there are also 4 other params that may need to be set
     //see http://opencvexamples.blogspot.com/2013/10/hough-circle-detection.html for other params 
-    double minDist = 50;
-    cv::HoughCircles(all_reds, circles, CV_HOUGH_GRADIENT, 1, minDist);
-
+    double minDist = 30;
+    cv::HoughCircles(all_reds, circles, CV_HOUGH_GRADIENT, 2, minDist, 200, 50, 0, 200);
 
     //if there are no circles found, spin robot until one is found
     if(circles.size() == 0) {
@@ -97,10 +99,8 @@ public:
         for(int i=0; i < circles.size(); i++) {
             cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
             int radius = cvRound(circles[i][2]);
-            // outline center of circle in green
-            cv::circle(cv_ptr->image, center, 10, CV_RGB(0,255,0));
             // outline entire circle in red
-            cv::circle(cv_ptr->image, center, radius, CV_RGB(255,0,0));
+            cv::circle(cv_ptr->image, center, radius, CV_RGB(0,255,0));
             int depth = cv_ptr->image.at<short int>(center);
             if(min_depth == -10000 | (min_depth != -10000 && depth <= min_depth)) {
                 min_depth = depth;
@@ -115,9 +115,11 @@ public:
         ball_center_pub.publish(center_string);
         //ball_center_pub.publish(ball);
     }
+    
 
     // Update GUI Window
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
+    //cv::imshow(OPENCV_WINDOW, all_reds);
     cv::waitKey(3);
     
     // Output modified video stream
