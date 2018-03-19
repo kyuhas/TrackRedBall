@@ -3,8 +3,10 @@
 #include <geometry_msgs/Twist.h> 
 
 const double EMPTY = -1;
-const double MID_X = 320;
-const double one_meter_distance = 1; //TODO: update this with correct value.
+const double MID_X_LOW = 310;
+const double MID_X_HIGH = 330;
+const double one_meter_distance_low = 980; 
+const double one_meter_distance_high = 1020;
 
 class DetermineBallVelocity
 {
@@ -19,7 +21,7 @@ public:
     centerPoints = n.subscribe("/BallCenterPoints", 10, 
       &DetermineBallVelocity::determineVel, this);
     // Publish command velocities
-    vel_pub = n.advertise<geometry_msgs::Twist>("/cmd_vel_mux/input/teleop", 100);
+    vel_pub = n.advertise<geometry_msgs::Twist>("/mobile_base/commands/velocity", 100);
   }
 
   ~DetermineBallVelocity()
@@ -35,16 +37,15 @@ public:
     }
     else{
         //do twist first (twist left of right to keep ball in middle of frame)
-        if(msg.x != MID_X) {
-            vel.angular.z = ((msg.x < MID_X) ? 0.1 : -0.1);
+        if(msg.x < MID_X_LOW || msg.x > MID_X_HIGH) {
+            vel.angular.z = ((msg.x < MID_X_LOW) ? 0.1 : -0.1);
         }
         //now, move the robot (forward or backward) based on its distance from the ball
-        if(msg.z != one_meter_distance) {
-            //vel.linear.x = ((msg.z < one_meter_distance) ? 0.1 : -0.1);
+        if(msg.z < one_meter_distance_low || msg.z > one_meter_distance_high) {
+            vel.linear.x = ((msg.z < one_meter_distance_low) ? -0.1 : 0.1);
         }
     }
     //publish the message
-    //std::cout << "Vel: " << vel.angular.z << vel.linear.x;
     vel_pub.publish(vel);
   }
 };
