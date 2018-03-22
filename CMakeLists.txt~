@@ -139,6 +139,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(follow_ball src/TrackRedBall.cpp)
 add_executable(findRedPixel src/code.cpp)
+add_executable(determineVelocity src/DetermineVelocity.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -147,7 +148,7 @@ add_executable(findRedPixel src/code.cpp)
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 target_link_libraries(follow_ball ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
 target_link_libraries(findRedPixel  ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} )
-
+target_link_libraries(determineVelocity ${catkin_LIBRARIES} )
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

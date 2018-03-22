@@ -6,10 +6,15 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <math.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/Twist.h>
 #include "std_msgs/String.h"
 
 static const std::string OPENCV_WINDOW = "Image window";
 const double EMPTY = -1;
+const double MID_X_LOW = 310;
+const double MID_X_HIGH = 330;
+const double one_meter_distance_low = 980; 
+const double one_meter_distance_high = 1020;
 
 class ImageConverter
 {
@@ -24,7 +29,7 @@ public:
   ImageConverter()
     : it_(nh_)
   {
-    // Subscrive to input video feed and publish output video feed
+    // Subscribe to input video feed and publish output video feed
     image_sub_ = it_.subscribe("/usb_cam/image_raw", 10, 
       &ImageConverter::imageCb, this);
     image_depth_sub_ = it_.subscribe("/camera/depth/image_raw", 10, 
@@ -59,14 +64,15 @@ public:
       ROS_ERROR("cv_bridge exception: %s", e.what());
       return;
     }
+    
+    //Publisher of command velocities
+    ros::Publisher vel_pub = n.advertise<geometry_msgs::Twist>("/mobile_base/commands/velocity", 100);
+    //new Twist message (starts as all zeros)
+    geometry_msgs::Twist vel; 
 
-
-    //publisher of ball centers
-    ros::Publisher ball_center_pub = nh_.advertise<geometry_msgs::Point>("/BallCenterPoints", 10);
-
-    //use thresholding to keep only red pixels (and orange since the ball is orange)
+    // REMOVE ALL PIXELS BUT RED/ORANGE ONES
+    //use thresholding to keep only red and orange pixels 
     //to find thresholded color ranges, I used this website: http://www.tydac.ch/color/
-    //red seems to be the only color that wraps around, so we need two Mats to represent it
     cv::Mat red_pixels_1;
     cv::Mat red_pixels_2;
     cv::inRange(hsv_image, cv::Scalar(0, 50, 50), cv::Scalar(25, 255, 255), red_pixels_1);
@@ -79,24 +85,20 @@ public:
     //https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/hough_circle/hough_circle.html
     cv::GaussianBlur(all_reds, all_reds, cv::Size(9,9), 0, 0);
 
+    // FIND CIRCLES IN NEW RED/ORANGE PIXEL IMAGE
     //now, let's use Hough Transforms to find any circles in the image
     cv::vector<cv::Vec3f> circles;
-    //see http://opencvexamples.blogspot.com/2013/10/hough-circle-detection.html 
     double minDist = 60;
     cv::HoughCircles(all_reds, circles, CV_HOUGH_GRADIENT, 2, minDist, 200, 50, 20, 200);
 
-    //if there are no circles found, spin robot until one is found
+    //if there are no circles found, spin robot so that it can look for the ball
     if(circles.size() == 0) {
-        geometry_msgs::Point empty;
-        empty.x = EMPTY;
-        empty.y = EMPTY;
-        empty.z = EMPTY; //empty values for now
-        ball_center_pub.publish(empty);
+        vel.angular.z = 0.5;
     }
     else {
         //according to the docs, each circle is represented as an array in the following form:
         //circle[i] = [center_x_position, center_y_position, radius]
-        //loop through each circle and find the closest one -- stay 1 meter away from this one
+        //loop through each circle and find the closest one 
         int min_depth = -10000;
         cv::Point ball;
         for(int i=0; i < circles.size(); i++) {
@@ -113,17 +115,22 @@ public:
                 }
             }
         }
-        //publish ball position
-        geometry_msgs::Point ballCenter;
-        ballCenter.x = ball.x;
-        ballCenter.y = ball.y;
-        ballCenter.z = min_depth; //assign min-depth as ball's z axis
-        ball_center_pub.publish(ballCenter);
+        // DETERMINE VELOCITY OF TURTLEBOT
+        //do twist first (twist left of right to keep ball in middle of frame)
+        if(ball.x < MID_X_LOW || ball.x > MID_X_HIGH) {
+            vel.angular.z = ((ball.x < MID_X_LOW) ? 0.1 : -0.1);
+        }
+        //now, move the robot (forward or backward) based on its distance from the ball
+        if(min_depth < one_meter_distance_low || min_depth > one_meter_distance_high) {
+            vel.linear.x = ((min_depth < one_meter_distance_low) ? -0.1 : 0.1);
+        }
     }
+
+    // PUBLISH VELOCITY MESSAGE
+    vel_pub.publish(vel);
 
     // Update GUI Window
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
-    //cv::imshow(OPENCV_WINDOW, all_reds);
     cv::waitKey(3);
     
     // Output modified video stream
