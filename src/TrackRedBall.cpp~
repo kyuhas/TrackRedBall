@@ -76,7 +76,7 @@ public:
     //to find thresholded color ranges, I used this website: http://www.tydac.ch/color/
     cv::Mat red_pixels_1;
     cv::Mat red_pixels_2;
-    cv::inRange(hsv_image, cv::Scalar(0, 100, 100), cv::Scalar(25, 255, 255), red_pixels_1);
+    cv::inRange(hsv_image, cv::Scalar(0, 100, 100), cv::Scalar(20, 255, 255), red_pixels_1);
     cv::inRange(hsv_image, cv::Scalar(150, 100, 100), cv::Scalar(180, 255, 255), red_pixels_2);   
     //get all of the red pixels in the image 
     cv::Mat all_reds;
@@ -95,12 +95,12 @@ public:
     //if there are no circles found, spin robot so that it can look for the ball
     if(circles.size() == 0) {
         vel.angular.z = 0.5;
+	vel_pub.publish(vel);
     }
     else {
         //according to the docs, each circle is represented as an array in the following form:
         //circle[i] = [center_x_position, center_y_position, radius]
         //loop through each circle and find the closest one 
-        int min_depth = -10000;
         cv::Point ball;
         for(int i=0; i < circles.size(); i++) {
             cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
@@ -108,27 +108,22 @@ public:
             //outline entire circle in green
             cv::circle(cv_ptr->image, center, radius, CV_RGB(0,255,0));
             //get depth of the ball
+	    int depth;
             if(ImageConverter::cv_depth_ptr != NULL) {
                 int depth = cv_depth_ptr->image.at<short int>(center);
-                if(min_depth == -10000 | (min_depth != -10000 && depth <= min_depth)) {
-                    min_depth = depth;
-                    ball = center;
-                }
             }
-        }
-        // DETERMINE VELOCITY OF TURTLEBOT
-        //do twist first (twist left of right to keep ball in middle of frame)
-        if(ball.x < MID_X_LOW || ball.x > MID_X_HIGH) {
-            vel.angular.z = ((ball.x < MID_X_LOW) ? 0.2 : -0.2);
-        }
-        //now, move the robot (forward or backward) based on its distance from the ball
-        if(min_depth < one_meter_distance_low || min_depth > one_meter_distance_high) {
-            vel.linear.x = ((min_depth < one_meter_distance_low) ? -0.2 : 0.2);
+	    // DETERMINE VELOCITY OF TURTLEBOT
+            //do twist first (twist left of right to keep ball in middle of frame)
+            if(ball.x < MID_X_LOW || ball.x > MID_X_HIGH) {
+                vel.angular.z = ((ball.x < MID_X_LOW) ? 0.2 : -0.2);
+            }
+            //now, move the robot (forward or backward) based on its distance from the ball
+            if(depth < one_meter_distance_low || depth > one_meter_distance_high) {
+                vel.linear.x = ((min_depth < one_meter_distance_low) ? -0.2 : 0.2);
+            }
+	    vel_pub.publish(vel);
         }
     }
-
-    // PUBLISH VELOCITY MESSAGE
-    vel_pub.publish(vel);
 
     // Update GUI Window
     cv::imshow(OPENCV_WINDOW, cv_ptr->image);
