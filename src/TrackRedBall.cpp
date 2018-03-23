@@ -67,7 +67,7 @@ public:
     
     //Publisher of command velocities
     //ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/mobile_base/commands/velocity", 100);
-    ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/cmd_vel_mux/input/teleop", 100);
+    ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/cmd_vel_mux/input/teleop", 1);
     //new Twist message (starts as all zeros)
     geometry_msgs::Twist vel; 
 
