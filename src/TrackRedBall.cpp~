@@ -67,7 +67,7 @@ public:
     
     //Publisher of command velocities
     //ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/mobile_base/commands/velocity", 100);
-    ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/cmd_vel_mux/input/teleop", 100);
+    ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/cmd_vel_mux/input/teleop", 1);
     //new Twist message (starts as all zeros)
     geometry_msgs::Twist vel; 
 
@@ -90,7 +90,7 @@ public:
     //now, let's use Hough Transforms to find any circles in the image
     cv::vector<cv::Vec3f> circles;
     double minDist = 80;
-    cv::HoughCircles(all_reds, circles, CV_HOUGH_GRADIENT, 1, minDist, 200, 20, 10, 100);
+    cv::HoughCircles(all_reds, circles, CV_HOUGH_GRADIENT, 1, minDist, 100, 20, 0, 0);
 
     //if there are no circles found, spin robot so that it can look for the ball
     if(circles.size() == 0) {
