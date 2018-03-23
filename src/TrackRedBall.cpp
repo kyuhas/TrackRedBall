@@ -66,7 +66,6 @@ public:
     }
     
     //Publisher of command velocities
-    //ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/mobile_base/commands/velocity", 100);
     ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/cmd_vel_mux/input/teleop", 1);
     //new Twist message (starts as all zeros)
     geometry_msgs::Twist vel; 
@@ -108,10 +107,7 @@ public:
             //outline entire circle in green
             cv::circle(cv_ptr->image, center, radius, CV_RGB(0,255,0));
             //get depth of the ball
-	    int depth;
-            if(ImageConverter::cv_depth_ptr != NULL) {
-                int depth = cv_depth_ptr->image.at<short int>(center);
-            }
+	    int depth = cv_depth_ptr->image.at<short int>(center);
 	    // DETERMINE VELOCITY OF TURTLEBOT
             //do twist first (twist left of right to keep ball in middle of frame)
             if(ball.x < MID_X_LOW || ball.x > MID_X_HIGH) {

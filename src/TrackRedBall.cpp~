@@ -66,7 +66,6 @@ public:
     }
     
     //Publisher of command velocities
-    //ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/mobile_base/commands/velocity", 100);
     ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/cmd_vel_mux/input/teleop", 1);
     //new Twist message (starts as all zeros)
     geometry_msgs::Twist vel; 
@@ -77,7 +76,7 @@ public:
     cv::Mat red_pixels_1;
     cv::Mat red_pixels_2;
     cv::inRange(hsv_image, cv::Scalar(0, 100, 100), cv::Scalar(20, 255, 255), red_pixels_1);
-    cv::inRange(hsv_image, cv::Scalar(150, 100, 100), cv::Scalar(180, 255, 255), red_pixels_2);   
+    cv::inRange(hsv_image, cv::Scalar(160, 100, 100), cv::Scalar(170, 255, 255), red_pixels_2);   
     //get all of the red pixels in the image 
     cv::Mat all_reds;
     all_reds = red_pixels_1 | red_pixels_2;
