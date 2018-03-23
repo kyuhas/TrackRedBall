@@ -98,7 +98,7 @@ public:
 	    // DETERMINE VELOCITY OF TURTLEBOT
             //do twist first (twist left of right to keep ball in middle of frame)
             if(center.x < MID_X_LOW || center.x > MID_X_HIGH) {
-                vel.angular.z = ((ball.x < MID_X_LOW) ? 0.5 : -0.5);
+                vel.angular.z = ((center.x < MID_X_LOW) ? 0.5 : -0.5);
             }
             //now, move the robot (forward or backward) based on its distance from the ball
             if(radius < 50 || radius > 60) {
