@@ -66,7 +66,8 @@ public:
     }
     
     //Publisher of command velocities
-    ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/mobile_base/commands/velocity", 100);
+    //ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/mobile_base/commands/velocity", 100);
+    ros::Publisher vel_pub = nh_.advertise<geometry_msgs::Twist>("/cmd_vel_mux/input/teleop", 100);
     //new Twist message (starts as all zeros)
     geometry_msgs::Twist vel; 
 
@@ -75,8 +76,8 @@ public:
     //to find thresholded color ranges, I used this website: http://www.tydac.ch/color/
     cv::Mat red_pixels_1;
     cv::Mat red_pixels_2;
-    cv::inRange(hsv_image, cv::Scalar(0, 50, 50), cv::Scalar(25, 255, 255), red_pixels_1);
-    cv::inRange(hsv_image, cv::Scalar(150, 50, 50), cv::Scalar(180, 255, 255), red_pixels_2);   
+    cv::inRange(hsv_image, cv::Scalar(0, 90, 90), cv::Scalar(25, 255, 255), red_pixels_1);
+    cv::inRange(hsv_image, cv::Scalar(150, 90, 90), cv::Scalar(180, 255, 255), red_pixels_2);   
     //get all of the red pixels in the image 
     cv::Mat all_reds;
     all_reds = red_pixels_1 | red_pixels_2;
@@ -88,8 +89,8 @@ public:
     // FIND CIRCLES IN NEW RED/ORANGE PIXEL IMAGE
     //now, let's use Hough Transforms to find any circles in the image
     cv::vector<cv::Vec3f> circles;
-    double minDist = 60;
-    cv::HoughCircles(all_reds, circles, CV_HOUGH_GRADIENT, 2, minDist, 200, 50, 20, 200);
+    double minDist = 80;
+    cv::HoughCircles(all_reds, circles, CV_HOUGH_GRADIENT, 2, minDist, 200, 20, 0, 0);
 
     //if there are no circles found, spin robot so that it can look for the ball
     if(circles.size() == 0) {
@@ -118,11 +119,11 @@ public:
         // DETERMINE VELOCITY OF TURTLEBOT
         //do twist first (twist left of right to keep ball in middle of frame)
         if(ball.x < MID_X_LOW || ball.x > MID_X_HIGH) {
-            vel.angular.z = ((ball.x < MID_X_LOW) ? 0.1 : -0.1);
+            vel.angular.z = ((ball.x < MID_X_LOW) ? 0.2 : -0.2);
         }
         //now, move the robot (forward or backward) based on its distance from the ball
         if(min_depth < one_meter_distance_low || min_depth > one_meter_distance_high) {
-            vel.linear.x = ((min_depth < one_meter_distance_low) ? -0.1 : 0.1);
+            vel.linear.x = ((min_depth < one_meter_distance_low) ? -0.2 : 0.2);
         }
     }
 
