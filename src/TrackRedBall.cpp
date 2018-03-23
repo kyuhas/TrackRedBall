@@ -94,7 +94,7 @@ public:
     //if there are no circles found, spin robot so that it can look for the ball
     if(circles.size() == 0) {
         vel.angular.z = 0.5;
-	vel_pub.publish(vel);
+	//vel_pub.publish(vel);
     }
     else {
         //according to the docs, each circle is represented as an array in the following form:
@@ -106,18 +106,19 @@ public:
             int radius = cvRound(circles[i][2]);
             //outline entire circle in green
             cv::circle(cv_ptr->image, center, radius, CV_RGB(0,255,0));
+	    std::cout << radius;
             //get depth of the ball
 	    int depth = cv_depth_ptr->image.at<short int>(center);
 	    // DETERMINE VELOCITY OF TURTLEBOT
             //do twist first (twist left of right to keep ball in middle of frame)
-            if(ball.x < MID_X_LOW || ball.x > MID_X_HIGH) {
-                vel.angular.z = ((ball.x < MID_X_LOW) ? 0.2 : -0.2);
+            //if(ball.x < MID_X_LOW || ball.x > MID_X_HIGH) {
+                //vel.angular.z = ((ball.x < MID_X_LOW) ? 0.2 : -0.2);
             }
             //now, move the robot (forward or backward) based on its distance from the ball
-            if(depth < one_meter_distance_low || depth > one_meter_distance_high) {
-                vel.linear.x = ((depth < one_meter_distance_low) ? -0.2 : 0.2);
-            }
-	    vel_pub.publish(vel);
+            //if(depth < one_meter_distance_low || depth > one_meter_distance_high) {
+                //vel.linear.x = ((depth < one_meter_distance_low) ? -0.2 : 0.2);
+            //}
+	    //vel_pub.publish(vel);
         }
     }
 
