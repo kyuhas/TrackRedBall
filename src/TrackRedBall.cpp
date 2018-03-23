@@ -76,7 +76,7 @@ public:
     //to find thresholded color ranges, I used this website: http://www.tydac.ch/color/
     cv::Mat red_pixels_1;
     cv::Mat red_pixels_2;
-    cv::inRange(hsv_image, cv::Scalar(0, 100, 100), cv::Scalar(25, 255, 255), red_pixels_1);
+    cv::inRange(hsv_image, cv::Scalar(0, 100, 100), cv::Scalar(20, 255, 255), red_pixels_1);
     cv::inRange(hsv_image, cv::Scalar(150, 100, 100), cv::Scalar(180, 255, 255), red_pixels_2);   
     //get all of the red pixels in the image 
     cv::Mat all_reds;

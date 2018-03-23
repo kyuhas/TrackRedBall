@@ -84,7 +84,7 @@ public:
 
     //according to the tutorial from the link below, we need to blur the image to reduce the noise 
     //https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/hough_circle/hough_circle.html
-    cv::GaussianBlur(all_reds, all_reds, cv::Size(9,9), 0, 0);
+    cv::GaussianBlur(all_reds, all_reds, cv::Size(9,9), 2, 2);
 
     // FIND CIRCLES IN NEW RED/ORANGE PIXEL IMAGE
     //now, let's use Hough Transforms to find any circles in the image
