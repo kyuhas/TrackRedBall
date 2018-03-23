@@ -76,8 +76,8 @@ public:
     //to find thresholded color ranges, I used this website: http://www.tydac.ch/color/
     cv::Mat red_pixels_1;
     cv::Mat red_pixels_2;
-    cv::inRange(hsv_image, cv::Scalar(0, 90, 90), cv::Scalar(25, 255, 255), red_pixels_1);
-    cv::inRange(hsv_image, cv::Scalar(150, 90, 90), cv::Scalar(180, 255, 255), red_pixels_2);   
+    cv::inRange(hsv_image, cv::Scalar(0, 100, 100), cv::Scalar(25, 255, 255), red_pixels_1);
+    cv::inRange(hsv_image, cv::Scalar(150, 100, 100), cv::Scalar(180, 255, 255), red_pixels_2);   
     //get all of the red pixels in the image 
     cv::Mat all_reds;
     all_reds = red_pixels_1 | red_pixels_2;
@@ -90,7 +90,7 @@ public:
     //now, let's use Hough Transforms to find any circles in the image
     cv::vector<cv::Vec3f> circles;
     double minDist = 80;
-    cv::HoughCircles(all_reds, circles, CV_HOUGH_GRADIENT, 2, minDist, 200, 20, 0, 0);
+    cv::HoughCircles(all_reds, circles, CV_HOUGH_GRADIENT, 1, minDist, 200, 20, 10, 100);
 
     //if there are no circles found, spin robot so that it can look for the ball
     if(circles.size() == 0) {
