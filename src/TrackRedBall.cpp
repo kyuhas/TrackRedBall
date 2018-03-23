@@ -88,8 +88,6 @@ public:
               int radius = cvRound(circles[i][2]);
               //outline entire circle in green
               cv::circle(cv_ptr->image, center, radius, CV_RGB(0,255,0));
-	      //std::cout << center.x << ", " << center.y << '\n';
-	      //std::cout << radius << '\n';
 	      // DETERMINE VELOCITY OF TURTLEBOT
               //do twist first (twist left of right to keep ball in middle of frame)
               if(center.x < MID_X_LOW || center.x > MID_X_HIGH) {
@@ -102,7 +100,6 @@ public:
 	      else {
 		  vel.linear.x = 0;
 	      }
-	      //vel.linear.x = 0.2;
 	      ROS_INFO("%f",vel.linear.x);
 	      vel_pub.publish(vel);
           }
